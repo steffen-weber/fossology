@@ -457,12 +457,12 @@ int GetVersionControl()
   int flag = 0; // 0: default; 1: home is null before setting, should rollback
   char *homeenv = NULL;
   homeenv = getenv("HOME");
-  char *repo = "/srv/fossology";
-  if(NULL == strstr(homeenv, repo))
+//  char *repo = "/srv/fossology";
+  if(NULL == homeenv)
   {
-    setenv("HOME", "/srv/fossology", 1);
     flag = 1;
   }
+  setenv("HOME", "/srv/fossology", 1);
 
   /** save each upload files in /srv/fossology/repository/localhost/wget/wget.xxx.dir/ */
   sprintf(TempFileDirectory, "%s.dir", GlobalTempFile);
@@ -485,10 +485,11 @@ int GetVersionControl()
   }
 
   rc = system(command);
+
   if (flag) // rollback
-  {
+    unsetenv("HOME");
+  else
     setenv("HOME", homeenv, 1);
-  }
 
   if (rc != 0)
   {
@@ -664,7 +665,7 @@ int Archivefs(char *Path, char *TempFile, char *TempFileDir, struct stat Status)
 
   if (S_ISDIR(Status.st_mode)) /** directory? */
   {
-    memset(CMD, MAXCMD, 0);
+    memset(CMD,'\0', MAXCMD);
     snprintf(CMD,MAXCMD-1, "tar -cvvf  '%s' -C '%s' ./ %s >/dev/null 2>&1", TempFile, Path, GlobalParam);
     rc_system = system(CMD);
     if (rc_system != 0)
@@ -674,7 +675,7 @@ int Archivefs(char *Path, char *TempFile, char *TempFileDir, struct stat Status)
     }
   } else if (strstr(Path, "*"))  // wildcards
   {
-    memset(CMD, MAXCMD, 0);
+    memset(CMD, '\0', MAXCMD);
     /* for the wildcards upload, keep the path */
     /* copy * files to TempFileDir/temp primarily */
     snprintf(CMD,MAXCMD-1, "mkdir -p %s/temp  > /dev/null 2>&1 && cp %s  %s/temp > /dev/null 2>&1", TempFileDir, Path, TempFileDir);
@@ -684,7 +685,7 @@ int Archivefs(char *Path, char *TempFile, char *TempFileDir, struct stat Status)
       LOG_FATAL("rc_system is:%d, CMD is:%s\n", rc_system, CMD);
       return 0;
     }
-    memset(CMD, MAXCMD, 0);
+    memset(CMD, '\0', MAXCMD);
     snprintf(CMD,MAXCMD-1, "tar -cvvf  '%s' -C %s/temp ./  > /dev/null 2>&1 && rm -rf %s/temp  > /dev/null 2>&1", TempFile, TempFileDir, TempFileDir);
     rc_system = system(CMD);
     if (rc_system != 0)
@@ -694,7 +695,7 @@ int Archivefs(char *Path, char *TempFile, char *TempFileDir, struct stat Status)
     }
   } else if(S_ISREG(Status.st_mode)) /** regular file? */
   {
-    memset(CMD, MAXCMD, 0);
+    memset(CMD, '\0', MAXCMD);
     snprintf(CMD,MAXCMD-1, "cp '%s' '%s' >/dev/null 2>&1", Path, TempFile);
     rc_system = system(CMD);
     if (rc_system != 0)

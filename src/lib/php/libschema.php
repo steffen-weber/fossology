@@ -26,6 +26,7 @@
 require_once(__DIR__ . '/../../vendor/autoload.php');
 
 use Fossology\Lib\Db\DbManager;
+use Fossology\Lib\Db\ModernDbManager;
 use Fossology\Lib\Db\Driver\Postgres;
 use Monolog\Handler\ErrorLogHandler;
 use Monolog\Logger;
@@ -853,6 +854,14 @@ class fo_libschema
    **/
   function exportSchema($filename = NULL)
   {
+    global $PG_CONN;
+
+    /* set driver */
+    $dbDriver = $this->dbman->getDriver();
+    if (empty($dbDriver)) {
+      $this->dbman->setDriver(new Postgres($PG_CONN));
+    }
+
     if (empty($filename))
     {
       $filename = stdout;
@@ -966,7 +975,7 @@ if (empty($dbManager) || !($dbManager instanceof DbManager))
   $logLevel = Logger::INFO;
   $logger = new Logger(__FILE__);
   $logger->pushHandler(new ErrorLogHandler(ErrorLogHandler::OPERATING_SYSTEM, $logLevel));
-  $dbManager = new DbManager($logger);
+  $dbManager = new ModernDbManager($logger);
 }
 /* simulate the old functions*/
 $libschema = new fo_libschema($dbManager);
