@@ -20,5 +20,6 @@ install:
 
 script:
  - make
+ - sudo chown fossy:fossy /usr/local/etc/fossology/Db.conf
  - cppcheck -q -isrc/nomos/agent_tests/testdata/NomosTestfiles/ src/
 
